@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+
+  mysql:
+    image: mysql:8
+    container_name: ${COMPOSE_PROJECT_NAME}_mysql
+    restart: ${RESTART}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PSWD}
+    networks:
+      - network
+    volumes:
+      - ./config/mysql/mysql.cnf:/etc/mysql/mysql.cnf
+
+  redis:
+    image: redis
+    container_name: ${COMPOSE_PROJECT_NAME}_redis
+    restart: ${RESTART}
+    networks:
+      - network
+
+  web:
+    image: dev-php-8.1-web
+    container_name: ${COMPOSE_PROJECT_NAME}_web
+    build:
+      context: ./images/web
+      args:
+        SSH_PSWD: ${SSH_PSWD}
+    depends_on:
+      - mysql
+      - redis
+    restart: ${RESTART}
+    networks:
+      - network
+    volumes:
+      - ./config/php/php.ini:/usr/local/etc/php/php.ini
+
+networks:
+
+  network:
+    external:
+      name: ${NETWORK}
